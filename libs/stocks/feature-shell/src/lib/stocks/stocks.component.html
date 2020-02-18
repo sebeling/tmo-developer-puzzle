@@ -13,19 +13,49 @@
   </mat-form-field>
 
   <mat-form-field>
-    <mat-label>{{ periodContent.label }}</mat-label>
-    <mat-select formControlName="period" (selectionChange)="fetchQuote()">
-      <mat-option
-        *ngFor="let timePeriod of timePeriods"
-        [value]="timePeriod.value"
-      >
-        {{ timePeriod.viewValue }}
-      </mat-option>
-    </mat-select>
+    <input
+      matInput
+      [placeholder]="datePickerContent.from.placeholder"
+      formControlName="fromDate"
+      value=""
+      [matDatepicker]="fromDatePicker"
+      [max]="maxDate"
+      (click)="fromDatePicker.open()"
+      (keydown.enter)="fromDatePicker.open()"
+      (dateChange)="fetchQuote()"
+      #fromDateInput
+    />
+    <mat-datepicker-toggle matSuffix [for]="fromDatePicker"></mat-datepicker-toggle>
+    <mat-datepicker #fromDatePicker></mat-datepicker>
     <mat-error>
-      <span *ngIf="isInvalidTimePeriod()">{{periodContent.invalidErrMsg}}</span>
+    <span *ngIf="isInvalidFromDate()">{{ datePickerContent.from.requiredErrorMsg }}</span>
+    </mat-error>
+  </mat-form-field>
+
+  <mat-form-field>
+    <input
+      matInput
+      [placeholder]="datePickerContent.to.placeholder"
+      formControlName="toDate"
+      value=""
+      [matDatepicker]="toDatePicker"
+      [max]="maxDate"
+      (click)="toDatePicker.open()"
+      (keydown.enter)="toDatePicker.open()"
+      (dateChange)="fetchQuote()"
+      #toDateInput
+    />
+    <mat-datepicker-toggle matSuffix [for]="toDatePicker"></mat-datepicker-toggle>
+    <mat-datepicker #toDatePicker></mat-datepicker>
+    <mat-error>
+      <span *ngIf="isInvalidToDate()">{{ datePickerContent.to.requiredErrorMsg }}</span>
     </mat-error>
   </mat-form-field>
 </form>
 
-<coding-challenge-chart [data$]="quotes$"></coding-challenge-chart>
+<coding-challenge-chart 
+  [data$]="quotes$" 
+  [toDate]="toDateInput.value"
+  [fromDate]="fromDateInput.value"
+>
+</coding-challenge-chart>

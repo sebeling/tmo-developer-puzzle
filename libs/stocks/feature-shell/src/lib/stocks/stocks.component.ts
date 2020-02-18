@@ -10,8 +10,7 @@ import { PriceQueryFacade } from '@coding-challenge/stocks/data-access-price-que
 export class StocksComponent implements OnInit {
   stockPickerForm: FormGroup;
   symbol: string;
-  period: string;
-
+  
   // Move hard coded symbol content out of template for testing convenience.
   // Could also potentially come from a content service in the furture.
   symbolContent = {
@@ -21,9 +20,15 @@ export class StocksComponent implements OnInit {
 
   // Move hard coded time period content out of template for testing convenience.
   // Could also potentially come from a content service in the furture.
-  periodContent = {
-    label: 'Favorite time period',
-    invalidErrMsg: 'Please choose a time period'
+  datePickerContent = {
+    from: {
+      placeholder: 'From date',
+      requiredErrorMsg: 'Please choose a start date'
+    },
+    to: {
+      placeholder: 'To date',
+      requiredErrorMsg: 'Please choose an end date'
+    }
   }
 
   quotes$ = this.priceQuery.priceQueries$;
@@ -39,10 +44,32 @@ export class StocksComponent implements OnInit {
     { viewValue: 'One month', value: '1m' }
   ];
 
+  maxDate: Date;
+  fiveYearsAgo: Date;
+  twoYearsAgo: Date;
+  oneYearAgo: Date;
+  sixMonthsAgo: Date;
+  threeMonthsAgo: Date;
+  oneMonthAgo: Date;
+
+
   constructor(private fb: FormBuilder, private priceQuery: PriceQueryFacade) {
+    // Set maxDate to today, which will be used hiding all dates after today in the datepickers.
+    this.maxDate = this.setTimeToMidnight(new Date());
+
+    // Set variables for each time period that can be passed into the priceQuery API
+    this.fiveYearsAgo = this.getDateWithYearOffset(5);    // Set date for five years before today
+    this.twoYearsAgo = this.getDateWithYearOffset(2);     // Set date for two years before today
+    this.oneYearAgo = this.getDateWithYearOffset(1);      // Set date for one year before today
+    this.sixMonthsAgo = this.getDateWithMonthOffset(6);   // Set date for 6 months before today
+    this.threeMonthsAgo = this.getDateWithMonthOffset(3); // Set date for 3 months before today
+    this.oneMonthAgo = this.getDateWithMonthOffset(1);    // Set date for 1 month before today
+
+    // Create form group
     this.stockPickerForm = fb.group({
       symbol: [null, Validators.required],
-      period: [null, Validators.required]
+      fromDate: [null, Validators.required],
+      toDate: [null, Validators.required]
     });
   }
 
@@ -53,9 +80,14 @@ export class StocksComponent implements OnInit {
   ngOnInit() {}
 
   fetchQuote() {
+    // Adjust date range if invalid range is selected
+    // Example: select 'to' date comes before the selected 'from' date
+    this.correctInvalidDateRanges();
+
     if (this.stockPickerForm.valid) {
-      const { symbol, period } = this.stockPickerForm.value;
-      this.priceQuery.fetchQuote(symbol, period);
+      const PERIOD = this.getTimePeriodByDateRange();
+      const SYMBOL = this.stockPickerForm.get('symbol').value;
+      this.priceQuery.fetchQuote(SYMBOL, PERIOD);
     }
   }
 
@@ -65,9 +97,80 @@ export class StocksComponent implements OnInit {
     return !SYMBOL.valid && SYMBOL.touched;
   }
 
-  // Added required validation function for time period select list
-  isInvalidTimePeriod(): boolean {
-    const PERIOD = this.stockPickerForm.get('period');
-    return !PERIOD.valid && PERIOD.touched;
+  // Added required validation function for from date
+  isInvalidFromDate(): boolean {
+    const FROM_DATE = this.stockPickerForm.get('fromDate');
+    return !FROM_DATE.valid && FROM_DATE.touched;
+  }
+
+  // Added required validation function for to date
+  isInvalidToDate(): boolean {
+    const TO_DATE = this.stockPickerForm.get('toDate');
+    return !TO_DATE.valid && TO_DATE.touched;
+  }
+
+  getTimePeriodByDateRange(): string {
+    let outPeriod = null;
+    
+    // Get selected to date from and datepicker control
+    const FROM_DATE = this.stockPickerForm.get('fromDate').value;
+
+    if (FROM_DATE instanceof Date) {
+      // First, determine the date range of data we need to request. The 
+      // priceQuery API assumes we are requesting data from today's date, 
+      // so we need to use today's date as the 'from' value and filter down 
+      // the returned data to only include the selected dates.
+
+      // NOTE: The year-to-date scenario is covered with the logic below
+      // as the correct results would be returned if the user selected
+      // today's date and January 1st of this year.
+
+      if(FROM_DATE < this.fiveYearsAgo) {
+        outPeriod = this.timePeriods[0].value; // max
+      } else if (FROM_DATE < this.twoYearsAgo) {
+        outPeriod = this.timePeriods[1].value; // 5y
+      } else if (FROM_DATE < this.oneYearAgo) {
+        outPeriod = this.timePeriods[2].value; // 2y
+      } else if (FROM_DATE < this.sixMonthsAgo) {
+        outPeriod = this.timePeriods[3].value; // 1y
+      } else if (FROM_DATE < this.threeMonthsAgo) {
+        outPeriod = this.timePeriods[5].value; // 6m
+      } else if (FROM_DATE < this.oneMonthAgo) {
+        outPeriod = this.timePeriods[6].value; // 3m
+      } else {
+        outPeriod = this.timePeriods[7].value; // 1m
+      }
+    }
+
+    return outPeriod;
+  }
+
+  getDateWithYearOffset(offset: number): Date {
+    const DATE = this.setTimeToMidnight(new Date());
+    return new Date(DATE.setFullYear(DATE.getFullYear() - offset));
+  }
+
+  getDateWithMonthOffset(offset: number): Date {
+    const DATE = this.setTimeToMidnight(new Date());
+    return new Date(DATE.setMonth(DATE.getMonth() - offset));
+  }
+
+  setTimeToMidnight(date: Date): Date {
+    date.setHours(0);
+    date.setMinutes(0);
+    date.setSeconds(0);
+    date.setMilliseconds(0);
+
+    return date;
+  }
+
+  correctInvalidDateRanges() {
+    const FROM_DATE = this.stockPickerForm.get('fromDate');
+    const TO_DATE = this.stockPickerForm.get('toDate');
+
+    // Set 'to' date to 'from' date if it's a day that comes before the 'from' date
+    if (FROM_DATE.value && TO_DATE.value && TO_DATE.value < FROM_DATE.value) {
+      TO_DATE.patchValue(FROM_DATE.value);
+    }
   }
 }
