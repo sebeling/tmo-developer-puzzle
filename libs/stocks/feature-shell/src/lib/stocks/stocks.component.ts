@@ -12,6 +12,20 @@ export class StocksComponent implements OnInit {
   symbol: string;
   period: string;
 
+  // Move hard coded symbol content out of template for testing convenience.
+  // Could also potentially come from a content service in the furture.
+  symbolContent = {
+    placeholder: 'Symbol e.g AAPL',
+    invalidErrMsg: 'Please enter a symbol'
+  };
+
+  // Move hard coded time period content out of template for testing convenience.
+  // Could also potentially come from a content service in the furture.
+  periodContent = {
+    label: 'Favorite time period',
+    invalidErrMsg: 'Please choose a time period'
+  }
+
   quotes$ = this.priceQuery.priceQueries$;
 
   timePeriods = [
@@ -32,14 +46,28 @@ export class StocksComponent implements OnInit {
     });
   }
 
-  ngOnInit() {
-    this.stockPickerForm.valueChanges.subscribe(this.fetchQuote);
-  }
+  // Moved calls to fetchQuote into event hanlders on the FormConrols for
+  // more control over when validation fires and stock price requests are made.
+  // This also fixes our memory leak issue with not unsubscribing from 
+  // the this.stockPickerForm.valueChanges Observable.
+  ngOnInit() {}
 
   fetchQuote() {
     if (this.stockPickerForm.valid) {
       const { symbol, period } = this.stockPickerForm.value;
       this.priceQuery.fetchQuote(symbol, period);
     }
+  }
+
+  // Moved symbol field validation out of template to keep template lightweight
+  isInvalidSymbol(): boolean {
+    const SYMBOL = this.stockPickerForm.get('symbol');
+    return !SYMBOL.valid && SYMBOL.touched;
+  }
+
+  // Added required validation function for time period select list
+  isInvalidTimePeriod(): boolean {
+    const PERIOD = this.stockPickerForm.get('period');
+    return !PERIOD.valid && PERIOD.touched;
   }
 }
