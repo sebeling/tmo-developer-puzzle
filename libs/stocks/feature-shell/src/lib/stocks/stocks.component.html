@@ -2,34 +2,61 @@
   <mat-form-field>
     <input
       matInput
-      placeholder="Symbol e.g AAPL"
+      [placeholder]="symbolContent.placeholder"
       formControlName="symbol"
       value=""
+      (blur)="fetchQuote()"
     />
-    <mat-error
-      ><span
-        *ngIf="
-          !stockPickerForm.get('symbol').valid &&
-          stockPickerForm.get('symbol').touched
-        "
-        >Please enter a symbol</span
-      >
+    <mat-error>
+      <span *ngIf="isInvalidSymbol()">{{symbolContent.invalidErrMsg}}</span>
     </mat-error>
   </mat-form-field>
 
   <mat-form-field>
-    <mat-label>Favorite time period</mat-label>
-    <mat-select formControlName="period">
-      <mat-option
-        *ngFor="let timePeriod of timePeriods"
-        [value]="timePeriod.value"
-      >
-        {{ timePeriod.viewValue }}
-      </mat-option>
-    </mat-select>
+    <input
+      matInput
+      [placeholder]="datePickerContent.from.placeholder"
+      formControlName="fromDate"
+      value=""
+      [matDatepicker]="fromDatePicker"
+      [max]="maxDate"
+      (click)="fromDatePicker.open()"
+      (keydown.enter)="fromDatePicker.open()"
+      (dateChange)="fetchQuote()"
+      #fromDateInput
+    />
+    <mat-datepicker-toggle matSuffix [for]="fromDatePicker"></mat-datepicker-toggle>
+    <mat-datepicker #fromDatePicker></mat-datepicker>
+    <mat-error>
+    <span *ngIf="isInvalidFromDate()">{{ datePickerContent.from.requiredErrorMsg }}</span>
+    </mat-error>
   </mat-form-field>
 
-  <button (click)="fetchQuote()" mat-raised-button>Go</button>
+  <mat-form-field>
+    <input
+      matInput
+      [placeholder]="datePickerContent.to.placeholder"
+      formControlName="toDate"
+      value=""
+      [matDatepicker]="toDatePicker"
+      [max]="maxDate"
+      (click)="toDatePicker.open()"
+      (keydown.enter)="toDatePicker.open()"
+      (dateChange)="fetchQuote()"
+      #toDateInput
+    />
+    <mat-datepicker-toggle matSuffix [for]="toDatePicker"></mat-datepicker-toggle>
+    <mat-datepicker #toDatePicker></mat-datepicker>
+    <mat-error>
+      <span *ngIf="isInvalidToDate()">{{ datePickerContent.to.requiredErrorMsg }}</span>
+    </mat-error>
+  </mat-form-field>
 </form>
 
-<coding-challenge-chart [data$]="quotes$"></coding-challenge-chart>
+<coding-challenge-chart 
+  [data$]="quotes$" 
+  [symbol]="symbol"
+  [toDate]="toDateInput.value"
+  [fromDate]="fromDateInput.value"
+>
+</coding-challenge-chart>

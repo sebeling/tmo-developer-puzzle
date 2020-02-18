@@ -320,6 +320,32 @@
           }
         }
       }
+    },
+    "hapi-stocks": {
+      "root": "libs/hapi/stocks",
+      "sourceRoot": "libs/hapi/stocks/src",
+      "projectType": "library",
+      "prefix": "tmo",
+      "architect": {
+        "lint": {
+          "builder": "@angular-devkit/build-angular:tslint",
+          "options": {
+            "tsConfig": [
+              "libs/hapi/stocks/tsconfig.lib.json",
+              "libs/hapi/stocks/tsconfig.spec.json"
+            ],
+            "exclude": ["**/node_modules/**", "!libs/hapi/stocks/**"]
+          }
+        },
+        "test": {
+          "builder": "@nrwl/jest:jest",
+          "options": {
+            "jestConfig": "libs/hapi/stocks/jest.config.js",
+            "tsConfig": "libs/hapi/stocks/tsconfig.spec.json",
+            "setupFile": "libs/hapi/stocks/src/test-setup.ts"
+          }
+        }
+      }
     }
   },
   "cli": {

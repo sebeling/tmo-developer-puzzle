@@ -26,6 +26,9 @@
       ],
       "@coding-challenge/stocks/data-access-app-config": [
         "libs/stocks/data-access-app-config/src/index.ts"
+      ],
+      "@coding-challenge/hapi/stocks": [
+        "libs/hapi/stocks/src/index.ts"
       ]
     }
   },
