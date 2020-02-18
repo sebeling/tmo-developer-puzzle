@@ -38,7 +38,7 @@ export class ChartComponent implements OnInit, OnDestroy {
 
     // Add check for Input variable - needed for unit tests
     if (this.data$) {
-      this.data$.subscribe(newData => (this.chartData = newData));
+      this.chartDataSubscription = this.data$.subscribe(newData => (this.chartData = newData));
     }
   }
 
