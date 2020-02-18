@@ -32,38 +32,13 @@ export class StocksComponent implements OnInit {
   }
 
   quotes$ = this.priceQuery.priceQueries$;
-
-  timePeriods = [
-    { viewValue: 'All available data', value: 'max' },
-    { viewValue: 'Five years', value: '5y' },
-    { viewValue: 'Two years', value: '2y' },
-    { viewValue: 'One year', value: '1y' },
-    { viewValue: 'Year-to-date', value: 'ytd' },
-    { viewValue: 'Six months', value: '6m' },
-    { viewValue: 'Three months', value: '3m' },
-    { viewValue: 'One month', value: '1m' }
-  ];
-
+  
   maxDate: Date;
-  fiveYearsAgo: Date;
-  twoYearsAgo: Date;
-  oneYearAgo: Date;
-  sixMonthsAgo: Date;
-  threeMonthsAgo: Date;
-  oneMonthAgo: Date;
 
 
   constructor(private fb: FormBuilder, private priceQuery: PriceQueryFacade) {
     // Set maxDate to today, which will be used hiding all dates after today in the datepickers.
     this.maxDate = this.setTimeToMidnight(new Date());
-
-    // Set variables for each time period that can be passed into the priceQuery API
-    this.fiveYearsAgo = this.getDateWithYearOffset(5);    // Set date for five years before today
-    this.twoYearsAgo = this.getDateWithYearOffset(2);     // Set date for two years before today
-    this.oneYearAgo = this.getDateWithYearOffset(1);      // Set date for one year before today
-    this.sixMonthsAgo = this.getDateWithMonthOffset(6);   // Set date for 6 months before today
-    this.threeMonthsAgo = this.getDateWithMonthOffset(3); // Set date for 3 months before today
-    this.oneMonthAgo = this.getDateWithMonthOffset(1);    // Set date for 1 month before today
 
     // Create form group
     this.stockPickerForm = fb.group({
@@ -85,9 +60,15 @@ export class StocksComponent implements OnInit {
     this.correctInvalidDateRanges();
 
     if (this.stockPickerForm.valid) {
-      const PERIOD = this.getTimePeriodByDateRange();
       const SYMBOL = this.stockPickerForm.get('symbol').value;
-      this.priceQuery.fetchQuote(SYMBOL, PERIOD);
+
+      // We no longer need to pass the period as a second
+      // param because the new HAPI API will always
+      // request the max results so we can cache it and
+      // allow the chart to filter out the dates selected
+      // by the user.
+      this.priceQuery.fetchQuote(SYMBOL);
+      this.symbol = SYMBOL;
     }
   }
 
@@ -107,52 +88,6 @@ export class StocksComponent implements OnInit {
   isInvalidToDate(): boolean {
     const TO_DATE = this.stockPickerForm.get('toDate');
     return !TO_DATE.valid && TO_DATE.touched;
-  }
-
-  getTimePeriodByDateRange(): string {
-    let outPeriod = null;
-    
-    // Get selected to date from and datepicker control
-    const FROM_DATE = this.stockPickerForm.get('fromDate').value;
-
-    if (FROM_DATE instanceof Date) {
-      // First, determine the date range of data we need to request. The 
-      // priceQuery API assumes we are requesting data from today's date, 
-      // so we need to use today's date as the 'from' value and filter down 
-      // the returned data to only include the selected dates.
-
-      // NOTE: The year-to-date scenario is covered with the logic below
-      // as the correct results would be returned if the user selected
-      // today's date and January 1st of this year.
-
-      if(FROM_DATE < this.fiveYearsAgo) {
-        outPeriod = this.timePeriods[0].value; // max
-      } else if (FROM_DATE < this.twoYearsAgo) {
-        outPeriod = this.timePeriods[1].value; // 5y
-      } else if (FROM_DATE < this.oneYearAgo) {
-        outPeriod = this.timePeriods[2].value; // 2y
-      } else if (FROM_DATE < this.sixMonthsAgo) {
-        outPeriod = this.timePeriods[3].value; // 1y
-      } else if (FROM_DATE < this.threeMonthsAgo) {
-        outPeriod = this.timePeriods[5].value; // 6m
-      } else if (FROM_DATE < this.oneMonthAgo) {
-        outPeriod = this.timePeriods[6].value; // 3m
-      } else {
-        outPeriod = this.timePeriods[7].value; // 1m
-      }
-    }
-
-    return outPeriod;
-  }
-
-  getDateWithYearOffset(offset: number): Date {
-    const DATE = this.setTimeToMidnight(new Date());
-    return new Date(DATE.setFullYear(DATE.getFullYear() - offset));
-  }
-
-  getDateWithMonthOffset(offset: number): Date {
-    const DATE = this.setTimeToMidnight(new Date());
-    return new Date(DATE.setMonth(DATE.getMonth() - offset));
   }
 
   setTimeToMidnight(date: Date): Date {

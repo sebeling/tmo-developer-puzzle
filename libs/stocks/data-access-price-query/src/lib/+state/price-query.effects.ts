@@ -23,10 +23,9 @@ export class PriceQueryEffects {
     {
       run: (action: FetchPriceQuery, state: PriceQueryPartialState) => {
         return this.httpClient
+          // Call our new HAPI API to retrieve the stock prices
           .get(
-            `${this.env.apiURL}/beta/stock/${action.symbol}/chart/${
-              action.period
-            }?token=${this.env.apiKey}`
+            `api/beta/stock/${action.symbol}`
           )
           .pipe(
             map(resp => new PriceQueryFetched(resp as PriceQueryResponse[]))
@@ -34,6 +33,7 @@ export class PriceQueryEffects {
       },
 
       onError: (action: FetchPriceQuery, error) => {
+        console.error('Unable to fetch stock prices. Please make sure stocks-api is running on port 3333.');
         return new PriceQueryFetchError(error);
       }
     }

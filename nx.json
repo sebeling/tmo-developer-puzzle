@@ -10,32 +10,58 @@
   "projects": {
     "stocks-data-access-price-query": {
       "tags": [
+        "platform: client",
         "type:data-access",
         "scope:stocks"
       ]
     },
     "stocks": {
-      "tags": []
+      "tags": [
+        "platform:client", 
+        "scope:stocks", 
+        "type:app"
+      ]
     },
     "stocks-e2e": {
-      "tags": []
+      "tags": [
+        "platform:client", 
+        "scope:stocks", 
+        "type:app"
+      ]
     },
     "stocks-feature-shell": {
       "tags": [
+        "platform: client",
         "scope:stocks",
         "type:feature"
       ]
     },
     "shared-ui-chart": {
-      "tags": []
+      "tags": [
+        "platform:client", 
+        "scope:stocks", 
+        "type:ui"
+      ]
     },
     "stocks-data-access-app-config": {
-      "tags": []
+      "tags": [
+        "platform:client", 
+        "scope:stocks", 
+        "type:data-access"
+      ]
     },
     "stocks-api": {
       "tags": [
-        "platform:server"
+        "platform:server",
+        "scope:shop", 
+        "type:app"
       ]
+    },
+    "hapi-stocks": {
+      "tags": [
+        "platform:server", 
+        "scope:shared", 
+        "type:feature"]
     }
   }
 }

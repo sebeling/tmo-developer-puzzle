@@ -2,6 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { CommonModule } from '@angular/common';
 import { GoogleChartsModule } from 'angular-google-charts';
+import { Observable } from 'rxjs';
 
 import { ChartComponent } from './chart.component';
 const MOCK_PRICE_QUOTE_RESPONSE = require('../../../../../../stocks/data-access-price-query/src/lib/+state/price.query.mock.json')['price-query'];
@@ -10,6 +11,10 @@ const MOCK_PRICE_QUOTE_RESPONSE = require('../../../../../../stocks/data-access-
 describe('ChartComponent', () => {
   let component: ChartComponent;
   let fixture: ComponentFixture<ChartComponent>;
+
+  const MOCK_QUERIES = new Observable<any>( subscriber => {
+    subscriber.next(MOCK_PRICE_QUOTE_RESPONSE);
+  });
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -43,12 +48,23 @@ describe('ChartComponent', () => {
     expect(fixture.debugElement.children[0].name).toEqual(EXPECTED);
   });
 
-  it('should not create a google-chart child element in the DOM when missing chartData', () => {
+  it('should not create any DOM elements when missing chartData', () => {
     component.chartData = null;
     fixture.detectChanges();
 
     const EXPECTED = 0;
     expect(fixture.debugElement.children.length).toEqual(EXPECTED);
+  });
+
+  it('should show no results found h3 element instead of chart element in the DOM when chartData is an empty array', () => {
+    component.chartData = [];
+    fixture.detectChanges();
+
+    const EXPECTED1 = 'google-chart';
+    expect(fixture.debugElement.children[0].name).not.toEqual(EXPECTED1);
+
+    const EXPECTED2 = 'h3';
+    expect(fixture.debugElement.children[0].name).toEqual(EXPECTED2);
   });
 
   it('should return a date object for January 1 2020 when given the string 1/1/2020', () => {
@@ -73,5 +89,28 @@ describe('ChartComponent', () => {
     expect(DATE.getFullYear()).toEqual(EXPECTED_YEAR);
     expect(DATE.getMonth()).toEqual(EXPECTED_MONTH);
     expect(DATE.getDate()).toEqual(EXPECTED_DATE);
+  });
+
+  it('should filter data down to only January 28 2020 when selected dates are both January 28 2020', () => {
+    const EXPECTED = "2020-01-28";
+
+    component.toDate = "1/28/2020";
+    component.fromDate = "1/28/2020";
+    component.filterResults(MOCK_PRICE_QUOTE_RESPONSE);
+
+    expect(component.chartData[0][0]).toEqual(EXPECTED);
+  });
+
+  it('should use default chart title when no symbol is defined', () => {
+    const EXPECTED = component.defaultChartTitle;
+    expect(component.chartTitle).toEqual(EXPECTED);
+  });
+
+  it('should include symbol in chart title when symbol has been set', () => {
+    const EXPECTED = 'AAPL';
+
+    component.symbol = EXPECTED;
+
+    expect(component.chartTitle).toContain(EXPECTED);
   });
 });

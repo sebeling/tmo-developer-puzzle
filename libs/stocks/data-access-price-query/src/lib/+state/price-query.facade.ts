@@ -18,7 +18,11 @@ export class PriceQueryFacade {
 
   constructor(private store: Store<PriceQueryPartialState>) {}
 
-  fetchQuote(symbol: string, period: string) {
-    this.store.dispatch(new FetchPriceQuery(symbol, period));
+  // Removed the period param because the new HAPI API 
+  // will always request the max results so we can cache 
+  // it and allow the chart to filter out the dates 
+  // selected by the user.
+  fetchQuote(symbol: string) {
+    this.store.dispatch(new FetchPriceQuery(symbol));
   }
 }

@@ -103,7 +103,7 @@ describe('StocksComponent', () => {
     const EXPECTED = 'fetchQuery called on dateChange';
 
     // Override fetchQuote function so we have a way to validate that the
-    // selectionChange event is calling the fetchQuote funciton when triggered
+    // dateChange event is calling the fetchQuote funciton when triggered
     component.fetchQuote = function() {
       fetchQueryStatus = EXPECTED;
     };
@@ -126,7 +126,7 @@ describe('StocksComponent', () => {
     const EXPECTED = 'fetchQuery called on dateChange';
 
     // Override fetchQuote function so we have a way to validate that the
-    // selectionChange event is calling the fetchQuote funciton when triggered
+    // dateChange event is calling the fetchQuote funciton when triggered
     component.fetchQuote = function() {
       fetchQueryStatus = EXPECTED;
     };
@@ -234,114 +234,24 @@ describe('StocksComponent', () => {
     expect(NEW_DATE.getMilliseconds()).toEqual(EXPECTED);
   });
 
-  it('should return a date with a year of 2015', () => {
-    const OFFSET = 5;
-    const DATE = new Date();
-    const EXPECTED = DATE.getFullYear() - OFFSET;
-    
-    const NEW_DATE = component.getDateWithYearOffset(OFFSET);
+  it('should set symbol to the value of the symbol form control when calling fetchQuote', () => {
+    const EXPECTED = 'AAPL';
 
-    expect(NEW_DATE.getFullYear()).toEqual(EXPECTED);
-  });
+    const SYMBOL: AbstractControl = component.stockPickerForm.get('symbol');
+    SYMBOL.markAsTouched();
+    SYMBOL.patchValue(EXPECTED);
 
-  it('should return a date 6 months before today', () => {
-    const OFFSET = 6;
-    const DATE = new Date();
-    DATE.setMonth(DATE.getMonth() - OFFSET);
-
-    const EXPECTED = DATE.getMonth();
-    const NEW_DATE = component.getDateWithMonthOffset(OFFSET);
-
-    expect(NEW_DATE.getMonth()).toEqual(EXPECTED);
-  });
-
-  it('should return max as the time period when selected date is over 5 years from today', () => {
-    const EXPECTED = 'max';
-    const TODAY = component.setTimeToMidnight(new Date());
-    const DATE = new Date(TODAY.getFullYear() - 5, TODAY.getMonth(), TODAY.getDate() - 1);
-
-    // Set from date to 5 years and a day ago from today
     const FROM_DATE: AbstractControl = component.stockPickerForm.get('fromDate');
     FROM_DATE.markAsTouched();
-    FROM_DATE.patchValue(DATE);
+    FROM_DATE.patchValue(new Date());
 
-    expect(component.getTimePeriodByDateRange()).toEqual(EXPECTED);
-  });
+    const TO_DATE: AbstractControl = component.stockPickerForm.get('toDate');
+    TO_DATE.markAsTouched();
+    TO_DATE.patchValue(new Date());
 
-  it('should return 5y as the time period when selected date is over 2 years from today', () => {
-    const EXPECTED = '5y';
-    const TODAY = component.setTimeToMidnight(new Date());
-    const DATE = new Date(TODAY.getFullYear() - 2, TODAY.getMonth(), TODAY.getDate() - 1);
+    component.fetchQuote();
 
-    // Set from date to 2 years and a day ago from today
-    const FROM_DATE: AbstractControl = component.stockPickerForm.get('fromDate');
-    FROM_DATE.markAsTouched();
-    FROM_DATE.patchValue(DATE);
+    expect(component.symbol).toEqual(EXPECTED);
 
-    expect(component.getTimePeriodByDateRange()).toEqual(EXPECTED);
-  });
-
-  it('should return 2y as the time period when selected date is over 1 year from today', () => {
-    const EXPECTED = '2y';
-    const TODAY = component.setTimeToMidnight(new Date());
-    const DATE = new Date(TODAY.getFullYear() - 1, TODAY.getMonth(), TODAY.getDate() - 1);
-
-    // Set from date to a year and a day ago from today
-    const FROM_DATE: AbstractControl = component.stockPickerForm.get('fromDate');
-    FROM_DATE.markAsTouched();
-    FROM_DATE.patchValue(DATE);
-
-    expect(component.getTimePeriodByDateRange()).toEqual(EXPECTED);
-  });
-
-  it('should return 1y as the time period when selected date is over 6 months from today', () => {
-    const EXPECTED = '1y';
-    const TODAY = component.setTimeToMidnight(new Date());
-    const DATE = new Date(TODAY.getFullYear(), TODAY.getMonth() - 6, TODAY.getDate() - 1);
-
-    // Set from date to 6 months and a day ago from today
-    const FROM_DATE: AbstractControl = component.stockPickerForm.get('fromDate');
-    FROM_DATE.markAsTouched();
-    FROM_DATE.patchValue(DATE);
-
-    expect(component.getTimePeriodByDateRange()).toEqual(EXPECTED);
-  });
-
-  it('should return 6m as the time period when selected date is over 3 months from today', () => {
-    const EXPECTED = '6m';
-    const TODAY = component.setTimeToMidnight(new Date());
-    const DATE = new Date(TODAY.getFullYear(), TODAY.getMonth() - 3, TODAY.getDate() - 1);
-
-    // Set from date to 3 months and a day ago from today
-    const FROM_DATE: AbstractControl = component.stockPickerForm.get('fromDate');
-    FROM_DATE.markAsTouched();
-    FROM_DATE.patchValue(DATE);
-
-    expect(component.getTimePeriodByDateRange()).toEqual(EXPECTED);
-  });
-
-  it('should return 3m as the time period when selected date is over 1 month from today', () => {
-    const EXPECTED = '3m';
-    const TODAY = component.setTimeToMidnight(new Date());
-    const DATE = new Date(TODAY.getFullYear(), TODAY.getMonth() - 1, TODAY.getDate() - 1);
-
-    // Set from date to month and day ago from today
-    const FROM_DATE: AbstractControl = component.stockPickerForm.get('fromDate');
-    FROM_DATE.markAsTouched();
-    FROM_DATE.patchValue(DATE);
-
-    expect(component.getTimePeriodByDateRange()).toEqual(EXPECTED);
-  });
-
-  it('should return 1m as the time period when selected date is today', () => {
-    const EXPECTED = '1m';
-    const TODAY = component.setTimeToMidnight(new Date());
-
-    // Set from date to today
-    const FROM_DATE: AbstractControl = component.stockPickerForm.get('fromDate');
-    FROM_DATE.markAsTouched();
-    FROM_DATE.patchValue(TODAY);
-
-    expect(component.getTimePeriodByDateRange()).toEqual(EXPECTED);
   });
 });

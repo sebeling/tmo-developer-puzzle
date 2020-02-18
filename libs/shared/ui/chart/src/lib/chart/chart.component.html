@@ -1,9 +1,10 @@
 <google-chart
-  *ngIf="chartData"
-  [title]="chart.title"
+  *ngIf="chartData && chartData.length"
+  [title]="chartTitle"
   [type]="chart.type"
   [data]="chartData"
   [columnNames]="chart.columnNames"
   [options]="chart.options"
 >
 </google-chart>
+<h3 *ngIf="chartData && !chartData.length">{{ noResultsFoundMsg }}</h3>

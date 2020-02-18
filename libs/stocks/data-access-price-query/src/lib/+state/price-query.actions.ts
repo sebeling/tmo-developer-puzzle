@@ -10,7 +10,12 @@ export enum PriceQueryActionTypes {
 
 export class FetchPriceQuery implements Action {
   readonly type = PriceQueryActionTypes.FetchPriceQuery;
-  constructor(public symbol: string, public period: string) {}
+
+  // Removed the period param because the new HAPI API 
+  // will always request the max results so we can cache 
+  // it and allow the chart to filter out the dates 
+  // selected by the user.
+  constructor(public symbol: string) {}
 }
 
 export class PriceQueryFetchError implements Action {
