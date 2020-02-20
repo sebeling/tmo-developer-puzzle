@@ -21,7 +21,6 @@ const MOCK_PRICE_QUOTE_RESPONSE = require('../../../../data-access-price-query/s
 describe('StocksComponent', () => {
   let component: StocksComponent;
   let fixture: ComponentFixture<StocksComponent>;
-  let fetchQueryStatus: string;
 
   // Create new observable to provide mock data response 
   const MOCK_QUERIES = new Observable<any>( subscriber => {
@@ -57,9 +56,6 @@ describe('StocksComponent', () => {
     // so the chart is created using our mock data.
     component.quotes$ = MOCK_QUERIES;
 
-    // Reset status
-    fetchQueryStatus = '';
-
     fixture.detectChanges();
   });
 
@@ -74,48 +70,27 @@ describe('StocksComponent', () => {
     expect(fixture.debugElement.children[0].name).toEqual(EXPECTED);
   });
 
-  it('should call fetchQuery when symbol input field loses focus', () => {
-    const EXPECTED = 'fetchQuery called on blur';
+  it('should call fetchQuery when changes form controls are made', () => {
+    // First we need to unsubscribe to avoid using debounce in our test
+    component.formValueChangeSubscription.unsubscribe();
 
-    // Override fetchQuote function so we have a way to validate that the
-    // blur event is calling the fetchQuote funciton when triggered
-    component.fetchQuote = function() {
-      fetchQueryStatus = EXPECTED;
-    };
+    // Next, we resubscribe but omit the debounce value to avoid the 1 sec delay
+    component.formValueChangeSubscription = component.stockPickerForm.valueChanges
+    .subscribe(params => component.fetchQuote(params));
+
+    // Set up Spy on fetchQuote
+    const priceFacade = fixture.debugElement.injector.get(PriceQueryFacade);
+    const fetchQuoteSpy = jest.spyOn(priceFacade, 'fetchQuote');
 
     // Set a value for the symbol input field
     const SYMBOL: AbstractControl = component.stockPickerForm.get('symbol');
     SYMBOL.patchValue('AAPL');
-    
-    // Give symbol input field focus, then take it away to trigger the blur event
-    const INPUT: HTMLInputElement = fixture.debugElement.queryAll(By.css('.mat-input-element'))[0].nativeElement;
-    INPUT.focus();
-    INPUT.blur();
 
-    expect(fetchQueryStatus).toEqual(EXPECTED);
-  });
+    // Set value for the peroid input field
+    const PERIOD: AbstractControl = component.stockPickerForm.get('period');
+    PERIOD.patchValue('5y');
 
-  it('should call fetchQuery when selecting a new time period option from the select list', () => {
-    const EXPECTED = 'fetchQuery called on selectionChange';
-
-    // Override fetchQuote function so we have a way to validate that the
-    // selectionChange event is calling the fetchQuote funciton when triggered
-    component.fetchQuote = function() {
-      fetchQueryStatus = EXPECTED;
-    };
-
-    // Click select element to open options panel
-    const SELECT: HTMLSelectElement = fixture.debugElement.queryAll(By.css('.mat-select'))[0].nativeElement;
-    SELECT.click();
-
-    // DOM should now include the options panel
-    fixture.detectChanges();
-
-    // Select an option in the panel to trigger selectionChange event
-    const OPTION = fixture.debugElement.queryAll(By.css('.mat-option'))[1].nativeElement;
-    OPTION.click();
-
-    expect(fetchQueryStatus).toEqual(EXPECTED);
+    expect(fetchQuoteSpy).toHaveBeenCalled();
   });
 
   it('should display a validation error when the symbol field is touched but has no value on blur', () => {

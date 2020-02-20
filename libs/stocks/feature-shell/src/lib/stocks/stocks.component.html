@@ -5,7 +5,6 @@
       [placeholder]="symbolContent.placeholder"
       formControlName="symbol"
       value=""
-      (blur)="fetchQuote()"
     />
     <mat-error>
       <span *ngIf="isInvalidSymbol()">{{symbolContent.invalidErrMsg}}</span>
@@ -14,7 +13,7 @@
 
   <mat-form-field>
     <mat-label>{{ periodContent.label }}</mat-label>
-    <mat-select formControlName="period" (selectionChange)="fetchQuote()">
+    <mat-select formControlName="period">
       <mat-option
         *ngFor="let timePeriod of timePeriods"
         [value]="timePeriod.value"
