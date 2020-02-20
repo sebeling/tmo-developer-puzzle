@@ -3,18 +3,20 @@ import {
   ChangeDetectorRef,
   Component,
   Input,
-  OnInit
+  OnInit,
+  OnDestroy
 } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, Subscription } from 'rxjs';
 
 @Component({
   selector: 'coding-challenge-chart',
   templateUrl: './chart.component.html',
   styleUrls: ['./chart.component.css']
 })
-export class ChartComponent implements OnInit {
+export class ChartComponent implements OnInit, OnDestroy {
   @Input() data$: Observable<any>;
   chartData: any;
+  chartDataSubscription: Subscription;
 
   chart: {
     title: string;
@@ -34,6 +36,15 @@ export class ChartComponent implements OnInit {
       options: { title: `Stock price`, width: '600', height: '400' }
     };
 
-    this.data$.subscribe(newData => (this.chartData = newData));
+    // Add check for Input variable - needed for unit tests
+    if (this.data$) {
+      this.chartDataSubscription = this.data$.subscribe(newData => (this.chartData = newData));
+    }
+  }
+
+  ngOnDestroy() {
+    if (this.chartDataSubscription) {
+      this.chartDataSubscription.unsubscribe();
+    }
   }
 }
